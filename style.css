@@ -1,0 +1,517 @@
+/* ==========================================================================
+   1. DECLARAÇÕES DE VARIÁVEIS E TEMAS (DESIGN SYSTEM)
+   ========================================================================== */
+:root {
+  --surface-base: #0a0c10;
+  --surface-card: #121620;
+  --surface-input: #1b2030;
+  --surface-accent: #252b3e;
+  
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  
+  --brand-orange: #ff6b4a;
+  --brand-yellow: #ffb84d;
+  --brand-gradient: linear-gradient(135deg, #ff6b4a, #ffb84d);
+  --success-green: #2ecc71;
+  
+  --border-radius-sm: 8px;
+  --border-radius-md: 14px;
+  --border-radius-lg: 20px;
+  --border-color: #22293d;
+  
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --shadow-main: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================================================
+   2. RESETS E CONFIGURAÇÕES GERAIS DE NAVEGADOR
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--surface-base);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   3. ARQUITETURA DO LAYOUT BASE (GRID E FLEXBOX)
+   ========================================================================== */
+.app-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .app-layout {
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+/* Sidebar / Barra Lateral de Histórico */
+.sidebar {
+  background-color: var(--surface-base);
+  border-bottom: 1px solid var(--border-color);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    border-bottom: none;
+    border-right: 1px solid var(--border-color);
+    background-color: rgba(18, 22, 32, 0.5);
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.badge-count {
+  background-color: var(--surface-accent);
+  color: var(--brand-yellow);
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.historico-lista {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+@media (min-width: 768px) {
+  .historico-lista {
+    max-height: none;
+  }
+}
+
+.historico-item.vazio {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 20px;
+  text-align: center;
+}
+
+.historico-item.vazio p {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* Área de Conteúdo Principal */
+.main-content {
+  background-color: var(--surface-card);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    padding: 40px;
+    border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
+    box-shadow: var(--shadow-main);
+  }
+}
+
+/* ==========================================================================
+   4. COMPONENTES: CABEÇALHO E IDENTIDADE VISUAL
+   ========================================================================== */
+.app-header {
+  text-align: left;
+}
+
+.branding {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.main-emoji {
+  font-size: 2.5rem;
+}
+
+.title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.app-header h1 {
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.version-tag {
+  background-color: rgba(255, 107, 74, 0.15);
+  color: var(--brand-orange);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  max-width: 600px;
+}
+
+/* ==========================================================================
+   5. COMPONENTES DE FORMULÁRIO E INPUTS
+   ========================================================================== */
+.panel-inputs {
+  background-color: rgba(27, 32, 48, 0.4);
+  padding: 20px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+input[type="text"], select {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  transition: var(--transition-fast);
+}
+
+input[type="text"]:focus, select:focus {
+  outline: none;
+  border-color: var(--brand-orange);
+  background-color: var(--surface-accent);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 480px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.helper-text {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* Seletores Estilo Chips Dinâmicos */
+.chips-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-item input[type="radio"] {
+  display: none;
+}
+
+.chip-label {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-color);
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.chip-item input[type="radio"]:checked + .chip-label {
+  background: var(--brand-gradient);
+  color: var(--surface-base);
+  border-color: transparent;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.3);
+}
+
+/* ==========================================================================
+   6. BOTÕES INTERATIVOS
+   ========================================================================== */
+.btn-principal {
+  width: 100%;
+  background: var(--brand-gradient);
+  border: none;
+  padding: 16px;
+  border-radius: var(--border-radius-sm);
+  color: var(--surface-base);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(255, 107, 74, 0.2);
+  transition: transform 0.1s ease;
+}
+
+.btn-principal:active {
+  transform: scale(0.98);
+}
+
+.btn-secundario {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--color-text-secondary);
+  padding: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-secundario:hover {
+  background-color: var(--surface-accent);
+  color: var(--color-text-primary);
+}
+
+/* ==========================================================================
+   7. INTERFACES DINÂMICAS: CARD DE RECEITA DA IA
+   ========================================================================== */
+.resultado-wrapper {
+  animation: slideUp var(--transition-normal) forwards;
+}
+
+.recipe-container {
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 24px;
+}
+
+.recipe-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-time { background-color: rgba(255, 184, 77, 0.1); color: var(--brand-yellow); border: 1px solid rgba(255, 184, 77, 0.2); }
+.badge-diet { background-color: rgba(46, 204, 113, 0.1); color: var(--success-green); border: 1px solid rgba(46, 204, 113, 0.2); }
+
+/* Bloco de Macros Nutricionais */
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  background-color: var(--surface-base);
+  padding: 14px;
+  border-radius: var(--border-radius-sm);
+  margin-bottom: 24px;
+}
+
+.macro-box {
+  text-align: center;
+}
+
+.macro-box span {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.macro-box strong {
+  font-size: 1rem;
+  color: var(--color-text-primary);
+}
+
+.section-title {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+  border-left: 3px solid var(--brand-orange);
+  padding-left: 8px;
+}
+
+.steps-list {
+  padding-left: 20px;
+}
+
+.steps-list li {
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  color: #e2e8f0;
+}
+
+/* ==========================================================================
+   8. ESTADOS AUXILIARES E ANIMAÇÕES
+   ========================================================================== */
+.hidden { display: none; }
+
+.loading-state {
+  text-align: center;
+  padding: 40px var(--transition-fast);
+  color: var(--brand-orange);
+  font-weight: 600;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.app-footer {
+  text-align: center;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.app-footer p {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+/* ==========================================================================
+   AJUSTES E ESTILIZAÇÃO PARA ÍCONES (BOXICONS)
+   ========================================================================== */
+
+/* Alinhamento dos ícones nos títulos e labels */
+.field-label i, .sidebar-header h3 i, .btn-secundario i {
+  font-size: 1.2rem;
+  vertical-align: middle;
+  margin-right: 4px;
+  color: var(--brand-orange);
+}
+
+.sidebar-header h3 i {
+  color: var(--brand-yellow);
+}
+
+/* Ícone grande do Chef no Cabeçalho */
+.main-icon-chef {
+  font-size: 2.8rem;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+/* Container do Input de Segurança com ícone integrado */
+.input-icon-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-icon-left {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--brand-orange);
+  font-size: 1.1rem;
+}
+
+.chave-segura-container input {
+  width: 100%;
+  padding: 12px 12px 12px 40px !important; /* Espaço para o ícone na esquerda */
+  background-color: var(--surface-input);
+  border: 1px dashed var(--brand-orange);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+/* Estilo para os ícones dentro do bloco de resposta (Nutrição) */
+.macro-box i {
+  font-size: 1.3rem;
+  color: var(--brand-yellow);
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Efeito sutil de rotação no ícone do botão principal ao passar o mouse */
+.btn-principal:hover .btn-icon-spin {
+  transform: rotate(45deg);
+}
+.btn-icon-spin {
+  font-size: 1.3rem;
+  transition: transform var(--transition-fast);
+}

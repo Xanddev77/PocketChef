@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PocketChef AI - Dashboard Gastronômico</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    
+    <aside class="sidebar" id="sidebar-historico">
+      <div class="sidebar-header">
+        <h3><i class='bx bx-book-bookmark'></i> Livro de Receitas</h3>
+        <span class="badge-count" id="historico-count">3 salvas</span>
+      </div>
+      <div class="historico-lista" id="lista-receitas-salvas">
+        <div class="historico-item vazio">
+          <p>Nenhuma receita salva ainda. Crie sua primeira receita mágica!</p>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <button id="btn-limpar-historico" class="btn-secundario"><i class='bx bx-trash'></i> Limpar Histórico</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      
+      <div class="chave-segura-container">
+        <div class="input-icon-wrapper">
+          <i class='bx bx-key input-icon-left'></i>
+          <input type="password" id="input-chave-api" placeholder="Cole sua Gemini API Key aqui para ativar o app">
+        </div>
+      </div>
+
+      <header class="app-header">
+        <div class="branding">
+          <i class='bx bx-restaurant main-icon-chef'></i>
+          <div class="title-group">
+            <h1>PocketChef <span class="gradient-text">AI</span></h1>
+            <span class="version-tag">v2.0 PRO</span>
+          </div>
+        </div>
+        <p class="subtitle">O assistente inteligente de bolso focado em combater o desperdício alimentar.</p>
+      </header>
+
+      <section class="panel-inputs">
+        
+        <div class="input-block">
+          <label for="ingredientes" class="field-label">
+            <i class='bx bx-fridge'></i> O que tem na sua geladeira hoje?
+          </label>
+          <div class="input-wrapper">
+            <input type="text" id="ingredientes" placeholder="Ex: frango, creme de leite, batata, cebola">
+          </div>
+          <p class="helper-text">Separe os ingredientes utilizando vírgulas para melhor interpretação da IA.</p>
+        </div>
+
+        <div class="form-grid">
+          <div class="input-block">
+            <label for="tempo" class="field-label">
+              <i class='bx bx-time-five'></i> Tempo Máximo
+            </label>
+            <select id="tempo">
+              <option value="15 minutos">Até 15 min (Express)</option>
+              <option value="30 minutos" selected>Até 30 min (Prático)</option>
+              <option value="60 minutos">Até 60 min (Banquete)</option>
+            </select>
+          </div>
+
+          <div class="input-block">
+            <label for="refeicao" class="field-label">
+              <i class='bx bx-dish'></i> Tipo de Prato
+            </label>
+            <select id="refeicao">
+              <option value="Qualquer tipo">Qualquer tipo</option>
+              <option value="Café da Manhã">Café da Manhã</option>
+              <option value="Almoço/Jantar">Almoço / Jantar</option>
+              <option value="Lanche Rápido">Lanche Rápido</option>
+              <option value="Sobremesa">Sobremesa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-block">
+          <label class="field-label">
+            <i class='bx bx-leaf'></i> Preferência ou Restrição Alimentar
+          </label>
+          <div class="chips-group">
+            <label class="chip-item">
+              <input type="radio" name="restricao" value="Nenhuma" checked>
+              <span class="chip-label">Sem restrições</span>
+            </label>
+            <label class="chip-item">
+              <input type="radio" name="restricao" value="Vegana">
+              <span class="chip-label">Vegana</span>
+            </label>
+            <label class="chip-item">
+              <input type="radio" name="restricao" value="Vegetariana">
+              <span class="chip-label">Vegetariana</span>
+            </label>
+            <label class="chip-item">
+              <input type="radio" name="restricao" value="Sem Glúten">
+              <span class="chip-label">Sem Glúten</span>
+            </label>
+            <label class="chip-item">
+              <input type="radio" name="restricao" value="Zero Açúcar">
+              <span class="chip-label">Zero Açúcar</span>
+            </label>
+          </div>
+        </div>
+
+        <button id="btn-gerar" class="btn-principal">
+          <span class="btn-text">Gerar Receita Inteligente</span>
+          <i class='bx bx-certification btn-icon-spin'></i>
+        </button>
+
+      </section>
+
+      <section id="resultado-container" class="resultado-wrapper hidden"></section>
+
+      <footer class="app-footer">
+        <p>Desenvolvido no Spck Editor integrado ao Google Gemini API • 2026</p>
+      </footer>
+
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

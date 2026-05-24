@@ -26,7 +26,7 @@ btnGerar.addEventListener('click', async () => {
      VALIDAÇÕES DE SEGURANÇA INTERNA
      ========================================================================== */
   if (!chaveUsuario) {
-    alert("⚠️ Acesso Negado: Por favor, cole sua Gemini API Key no campo do topo da página para ativar o robô!");
+    alert("Acesso Negado: Por favor, cole sua Gemini API Key no campo do topo da página para ativar o robô!");
     return;
   }
 
@@ -44,7 +44,7 @@ btnGerar.addEventListener('click', async () => {
   containerResultado.classList.remove('hidden');
   containerResultado.innerHTML = `
     <div class="loading-state">
-      <p><i class='bx bx-loader-alt bx-spin'></i> O Chef Inteligente está inventando sua receita... ⏳</p>
+      <p><i class='bx bx-loader-alt bx-spin'></i> O Chef Inteligente está inventando sua receita...</p>
     </div>
   `;
 

@@ -515,3 +515,68 @@ input[type="text"]:focus, select:focus {
   font-size: 1.3rem;
   transition: transform var(--transition-fast);
 }
+/* ==========================================================================
+   TELA DE SPlASH FULLSCREEN
+   ========================================================================== */
+.splash-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--surface-base); /* Fundo preto do design system */
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.splash-content {
+  text-align: center;
+}
+
+/* O ícone expandido por completo no centro */
+.splash-icon {
+  font-size: 6rem; /* Tamanho gigante para destaque total */
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  margin-bottom: 15px;
+  animation: pulseIcon 2s infinite ease-in-out;
+}
+
+.splash-content h1 {
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin-bottom: 20px;
+}
+
+/* Um pequeno indicador de carregamento abaixo do texto */
+.splash-loader {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--surface-input);
+  border-top-color: var(--brand-orange);
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spinLoader 0.8s linear infinite;
+}
+
+/* Animações da Splash */
+@keyframes pulseIcon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes spinLoader {
+  to { transform: rotate(360deg); }
+}
+
+/* Classe de sumiço */
+.splash-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+

@@ -1,5 +1,13 @@
 import { GoogleGenAI } from 'https://esm.run/@google/genai';
 
+// Remove a tela de Splash Screen após o carregamento completo do DOM
+window.addEventListener('DOMContentLoaded', () => {
+  const splash = document.getElementById('splash-screen');
+  setTimeout(() => {
+    splash.classList.add('splash-hidden');
+  }, 1500); // 1.5 segundos para dar o efeito de entrada premium do app
+});
+
 // Seleção de elementos da árvore DOM do HTML
 const btnGerar = document.getElementById('btn-gerar');
 const inputIngredientes = document.getElementById('ingredientes');

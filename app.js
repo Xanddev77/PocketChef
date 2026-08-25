@@ -1,134 +1,286 @@
-import { GoogleGenAI } from 'https://esm.run/@google/genai';
+import { GoogleGenAI } from "https://esm.run/@google/genai";
 
-// Remove a tela de Splash Screen após o carregamento completo do DOM
-window.addEventListener('DOMContentLoaded', () => {
-  const splash = document.getElementById('splash-screen');
-  setTimeout(() => {
-    splash.classList.add('splash-hidden');
-  }, 1500); // 1.5 segundos para dar o efeito de entrada premium do app
+import { auth, db, provider } from "./firebase.js";
+
+import {
+    cadastrar,
+    login,
+    loginGoogle,
+    recuperarSenha,
+    sair,
+    verificarLogin
+} from "./auth.js";
+
+
+// ===============================
+// ELEMENTOS DA IA
+// ===============================
+
+const btnGerar = document.getElementById("btn-gerar");
+const inputIngredientes = document.getElementById("ingredientes");
+const selectTempo = document.getElementById("tempo");
+const selectRefeicao = document.getElementById("refeicao");
+const containerResultado = document.getElementById("resultado-container");
+
+
+// ===============================
+// ELEMENTOS LOGIN
+// ===============================
+
+const loginModal = document.getElementById("login-modal");
+
+const btnLogin = document.getElementById("btn-login");
+const btnLogout = document.getElementById("btn-logout");
+
+const btnClose = document.getElementById("close-modal");
+
+const btnEntrar = document.getElementById("btn-email-login");
+const btnGoogle = document.getElementById("btn-google-login");
+const btnCriarConta = document.getElementById("btn-register");
+const btnEsqueci = document.getElementById("btn-forgot");
+
+const emailInput = document.getElementById("login-email");
+const senhaInput = document.getElementById("login-password");
+
+const nomeUsuario = document.getElementById("user-name");
+const emailUsuario = document.getElementById("user-email");
+
+
+// ===============================
+// MODAL LOGIN
+// ===============================
+
+btnLogin.addEventListener("click",()=>{
+
+    loginModal.classList.remove("hidden");
+
 });
 
-// Seleção de elementos da árvore DOM do HTML
-const btnGerar = document.getElementById('btn-gerar');
-const inputIngredientes = document.getElementById('ingredientes');
-const selectTempo = document.getElementById('tempo');
-const selectRefeicao = document.getElementById('refeicao');
-const containerResultado = document.getElementById('resultado-container');
+btnClose.addEventListener("click",()=>{
 
-// Evento principal disparado ao clicar no botão de gerar receita
-btnGerar.addEventListener('click', async () => {
-  
-  // 1. Captura a chave de segurança inserida na tela pelo usuário/apresentador
-  const chaveUsuario = document.getElementById('input-chave-api').value.trim();
-  
-  // Captura dos demais filtros do formulário gourmet
-  const ingredientes = inputIngredientes.value.trim();
-  const tempo = selectTempo.value;
-  const tipoRefeicao = selectRefeicao.value;
-  
-  // Captura qual chip de restrição alimentar está marcado
-  const radioMarcado = document.querySelector('input[name="restricao"]:checked');
-  const restricao = radioMarcado ? radioMarcado.value : "Nenhuma";
+    loginModal.classList.add("hidden");
 
-  /* ==========================================================================
-     VALIDAÇÕES DE SEGURANÇA INTERNA
-     ========================================================================== */
-  if (!chaveUsuario) {
-    alert("Acesso Negado: Por favor, cole sua Gemini API Key no campo do topo da página para ativar o robô!");
-    return;
-  }
+});
 
-  if (!ingredientes) {
-    alert("Por favor, informe pelo menos um ingrediente para o Chef!");
-    return;
-  }
+window.addEventListener("click",(e)=>{
 
-  /* ==========================================================================
-     INICIALIZAÇÃO DO SDK DO GEMINI COM A CHAVE INFORMADA VIA FRONT-END
-     ========================================================================== */
-  const ai = new GoogleGenAI({ apiKey: chaveUsuario });
+    if(e.target===loginModal){
 
-  // Ativa a área visual de carregamento (feedback de processamento assíncrono)
-  containerResultado.classList.remove('hidden');
-  containerResultado.innerHTML = `
-    <div class="loading-state">
-      <p><i class='bx bx-loader-alt bx-spin'></i> O Chef Inteligente está inventando sua receita...</p>
-    </div>
-  `;
+        loginModal.classList.add("hidden");
 
-  try {
-    // Chamada oficial à API do Gemini utilizando o modelo estável 2.5 Flash
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `Crie uma receita utilizando estritamente estes ingredientes: ${ingredientes}. 
-                 Tipo de refeição configurada: ${tipoRefeicao}. 
-                 Tempo limite de preparo: ${tempo}. 
-                 Restrição ou preferência alimentar ativa: ${restricao}.`,
-      config: {
-        systemInstruction: `Você é um Chef executivo renomado, focado em alta gastronomia e aproveitamento de ingredientes domésticos. 
-        Você deve gerar um nome elegante para a receita e estimar a quantidade aproximada de calorias e macros.`,
-        
-        // Garante que o retorno do modelo venha em uma estrutura JSON limpa e previsível
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: 'OBJECT',
-          properties: {
-            nomePrato: { type: 'STRING' },
-            tempoFinal: { type: 'STRING', description: 'Ex: 20 min' },
-            calorias: { type: 'STRING', description: 'Ex: 410 kcal' },
-            carboidratos: { type: 'STRING', description: 'Ex: 35g' },
-            proteinas: { type: 'STRING', description: 'Ex: 28g' },
-            passos: { type: 'ARRAY', items: { type: 'STRING' } }
-          },
-          required: ['nomePrato', 'tempoFinal', 'calorias', 'carboidratos', 'proteinas', 'passos']
-        }
-      }
-    });
+    }
 
-    // Transforma a string de texto JSON purificada do Gemini em Objeto manipulável pelo JS
-    const receita = JSON.parse(response.text);
+});
 
-    // Injeta a estrutura semântica final com os ícones do Boxicons alinhados ao CSS premium
-    containerResultado.innerHTML = `
-      <article class="recipe-container">
-        <h2 class="recipe-title">${receita.nomePrato}</h2>
-        
-        <div class="meta-row">
-          <span class="badge badge-time"><i class='bx bx-stopwatch'></i> Pronto em: ${receita.tempoFinal}</span>
-          <span class="badge badge-diet"><i class='bx bx-purchase-tag-alt'></i> ${restricao}</span>
+
+// ===============================
+// BOTÕES LOGIN
+// ===============================
+
+btnEntrar.addEventListener("click",()=>{
+
+    login(
+        emailInput.value,
+        senhaInput.value
+    );
+
+});
+
+btnCriarConta.addEventListener("click",()=>{
+
+    cadastrar(
+        emailInput.value,
+        senhaInput.value
+    );
+
+});
+
+btnGoogle.addEventListener("click",()=>{
+
+    loginGoogle();
+
+});
+
+btnLogout.addEventListener("click",()=>{
+
+    sair();
+
+});
+
+btnEsqueci.addEventListener("click",()=>{
+
+    recuperarSenha(emailInput.value);
+
+});
+
+// ===============================
+// OBSERVA O LOGIN DO USUÁRIO
+// ===============================
+
+verificarLogin((user)=>{
+
+    if(user){
+
+        nomeUsuario.textContent =
+            user.displayName || "Chef";
+
+        emailUsuario.textContent =
+            user.email;
+
+        btnLogin.classList.add("hidden");
+        btnLogout.classList.remove("hidden");
+
+        loginModal.classList.add("hidden");
+
+        console.log("Usuário logado:",user.email);
+
+    }else{
+
+        nomeUsuario.textContent =
+            "Visitante";
+
+        emailUsuario.textContent =
+            "Faça login para sincronizar suas receitas";
+
+        btnLogin.classList.remove("hidden");
+        btnLogout.classList.add("hidden");
+
+        console.log("Nenhum usuário logado");
+
+    }
+
+});
+
+
+// ===============================
+// GERAR RECEITA
+// ===============================
+
+btnGerar.addEventListener("click", async ()=>{
+
+    const chaveUsuario =
+        document
+        .getElementById("input-chave-api")
+        .value
+        .trim();
+
+    const ingredientes =
+        inputIngredientes.value.trim();
+
+    const tempo =
+        selectTempo.value;
+
+    const tipoRefeicao =
+        selectRefeicao.value;
+
+    const radioMarcado =
+        document.querySelector(
+            'input[name="restricao"]:checked'
+        );
+
+    const restricao =
+        radioMarcado
+        ? radioMarcado.value
+        : "Nenhuma";
+
+    if(!chaveUsuario){
+
+        alert("Cole sua Gemini API Key.");
+
+        return;
+
+    }
+
+    if(!ingredientes){
+
+        alert("Informe pelo menos um ingrediente.");
+
+        return;
+
+    }
+
+    const ai =
+        new GoogleGenAI({
+
+            apiKey:chaveUsuario
+
+        });
+
+    containerResultado.classList.remove("hidden");
+
+    containerResultado.innerHTML=`
+
+        <div class="loading-state">
+
+            <p>
+
+                <i class='bx bx-loader-alt bx-spin'></i>
+
+                PocketChef está criando sua receita...
+
+            </p>
+
         </div>
 
-        <div class="nutrition-grid">
-          <div class="macro-box">
-            <i class='bx bx-bolt-circle'></i>
-            <span>Calorias</span>
-            <strong>${receita.calorias}</strong>
-          </div>
-          <div class="macro-box">
-            <i class='bx bx-cookie'></i>
-            <span>Carbos</span>
-            <strong>${receita.carboidratos}</strong>
-          </div>
-          <div class="macro-box">
-            <i class='bx bx-dna'></i>
-            <span>Proteínas</span>
-            <strong>${receita.proteinas}</strong>
-          </div>
-        </div>
+`;
+    try {
 
-        <h3 class="section-title">Modo de Preparo</h3>
-        <ol class="steps-list">
-          ${receita.passos.map(passo => `<li>${passo}</li>`).join('')}
-        </ol>
-      </article>
-    `;
+        const response = await ai.models.generateContent({
 
-  } catch (error) {
-    console.error("Falha técnica de comunicação com a API do Gemini:", error);
-    containerResultado.innerHTML = `
-      <div class="loading-state" style="color: var(--brand-orange);">
-        <p><i class='bx bx-error-circle'></i> Erro na requisição. Verifique se a sua chave colada no campo superior é válida e tente de novo.</p>
-      </div>
-    `;
-  }
+            model: "gemini-2.5-flash",
+
+            contents: `
+            Crie uma receita utilizando:
+
+            Ingredientes: ${ingredientes}
+
+            Tempo máximo: ${tempo}
+
+            Tipo de refeição: ${tipoRefeicao}
+
+            Restrição alimentar: ${restricao}
+            `
+
+        });
+
+        const texto = response.text;
+
+        containerResultado.innerHTML = `
+
+            <div class="recipe-container">
+
+                <h2>Sua Receita</h2>
+
+                <div class="recipe-content">
+
+                    ${texto.replace(/\n/g,"<br>")}
+
+                </div>
+
+            </div>
+
+        `;
+
+    } catch (erro) {
+
+        console.error(erro);
+
+        containerResultado.innerHTML = `
+
+            <div class="loading-state">
+
+                <p>
+
+                    <i class='bx bx-error-circle'></i>
+
+                    Erro ao gerar a receita.
+
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
 });

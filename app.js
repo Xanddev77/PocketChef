@@ -73,15 +73,63 @@ window.addEventListener("DOMContentLoaded", () => {
 // ===============================
 if (btnLogin) btnLogin.addEventListener("click", () => loginModal.classList.remove("hidden"));
 if (btnClose) btnClose.addEventListener("click", () => loginModal.classList.add("hidden"));
+
 window.addEventListener("click", (e) => { 
     if (e.target === loginModal) loginModal.classList.add("hidden"); 
 });
 
-if (btnEntrar) btnEntrar.addEventListener("click", () => login(emailInput.value, senhaInput.value));
-if (btnCriarConta) btnCriarConta.addEventListener("click", () => cadastrar(emailInput.value, senhaInput.value));
-if (btnGoogle) btnGoogle.addEventListener("click", () => loginGoogle());
+// LOGIN COM E-MAIL E SENHA
+if (btnEntrar) {
+    btnEntrar.addEventListener("click", async () => {
+        const email = emailInput ? emailInput.value.trim() : "";
+        const senha = senhaInput ? senhaInput.value.trim() : "";
+
+        if (!email || !senha) {
+            alert("Por favor, preencha o e-mail e a senha.");
+            return;
+        }
+
+        await login(email, senha);
+    });
+}
+
+// CADASTRAR NOVO USUÁRIO
+if (btnCriarConta) {
+    btnCriarConta.addEventListener("click", async () => {
+        const email = emailInput ? emailInput.value.trim() : "";
+        const senha = senhaInput ? senhaInput.value.trim() : "";
+
+        if (!email || !senha) {
+            alert("Por favor, preencha o e-mail e a senha para criar a conta.");
+            return;
+        }
+
+        if (senha.length < 6) {
+            alert("A senha deve ter pelo menos 6 caracteres.");
+            return;
+        }
+
+        await cadastrar(email, senha);
+    });
+}
+
+// LOGIN COM GOOGLE
+if (btnGoogle) {
+    btnGoogle.addEventListener("click", async () => {
+        await loginGoogle();
+    });
+}
+
+// LOGOUT E RECUPERAR SENHA
 if (btnLogout) btnLogout.addEventListener("click", () => sair());
-if (btnEsqueci) btnEsqueci.addEventListener("click", () => recuperarSenha(emailInput.value));
+
+if (btnEsqueci) {
+    btnEsqueci.addEventListener("click", () => {
+        const email = emailInput ? emailInput.value.trim() : "";
+        recuperarSenha(email);
+    });
+}
+
 
 // ===============================
 // MONITOR DA AUTENTICAÇÃO

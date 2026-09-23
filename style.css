@@ -770,6 +770,7 @@ cursor:pointer;
 .splash-overlay.fade-out {
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
 }
 
 .splash-content {

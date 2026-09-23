@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "https://esm.run/@google/genai";
+import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
 // ===============================
 // ELEMENTOS DO DOM
@@ -17,17 +17,17 @@ const btnLimparHistorico = document.getElementById("btn-limpar-historico");
 // INICIALIZAÇÃO
 // ===============================
 window.addEventListener("DOMContentLoaded", () => {
-    // Restaura chave da API salva no navegador
+    // Restaura a chave salva no navegador
     const savedKey = localStorage.getItem("pocketchef_gemini_key");
     if (savedKey && inputApiKey) {
         inputApiKey.value = savedKey;
     }
     
-    // Carrega receitas salvas localmente
+    // Carrega o histórico local
     carregarReceitasLocais();
 });
 
-// Guardar API Key localmente quando o utilizador digitar
+// Salva a chave da API localmente ao alterar
 if (inputApiKey) {
     inputApiKey.addEventListener("change", () => {
         localStorage.setItem("pocketchef_gemini_key", inputApiKey.value.trim());
@@ -37,7 +37,7 @@ if (inputApiKey) {
 // Limpar histórico
 if (btnLimparHistorico) {
     btnLimparHistorico.addEventListener("click", () => {
-        if (confirm("Tem certeza que deseja apagar todas as receitas salvas?")) {
+        if (confirm("Deseja apagar todas as receitas salvas?")) {
             localStorage.removeItem("pocketchef_receitas_salvas");
             carregarReceitasLocais();
         }
@@ -45,7 +45,7 @@ if (btnLimparHistorico) {
 }
 
 // ===============================
-// GERAR RECEITA (INTEGRAÇÃO GEMINI)
+// GERAR RECEITA (GOOGLE GEMINI API)
 // ===============================
 if (btnGerar) {
     btnGerar.addEventListener("click", async () => {
@@ -58,7 +58,7 @@ if (btnGerar) {
         const restricao = radioMarcado ? radioMarcado.value : "Nenhuma";
 
         if (!chaveUsuario) {
-            alert("Cole sua Gemini API Key no campo indicado no topo.");
+            alert("Por favor, informe a sua Gemini API Key no topo da página.");
             return;
         }
 
@@ -80,7 +80,9 @@ if (btnGerar) {
         `;
 
         try {
-            const ai = new GoogleGenAI({ apiKey: chaveUsuario });
+            // Inicialização correta da SDK do Gemini
+            const genAI = new GoogleGenerativeAI(chaveUsuario);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
             const promptText = `
                 Você é um chef especialista focado em combate ao desperdício alimentar.
@@ -90,18 +92,15 @@ if (btnGerar) {
                 - Tipo de refeição: ${tipoRefeicao}
                 - Restrição alimentar: ${restricao}
 
-                Estruture a resposta com:
+                Estruture a resposta de forma limpa:
                 1. Nome Prático da Receita
                 2. Lista Completa de Ingredientes
                 3. Modo de Preparo Passo a Passo
             `;
 
-            const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: promptText
-            });
-
-            const textoReceita = response.text || "Não foi possível estruturar o texto da receita.";
+            const result = await model.generateContent(promptText);
+            const response = await result.response;
+            const textoReceita = response.text();
 
             containerResultado.innerHTML = `
                 <div class="recipe-container">
@@ -123,12 +122,12 @@ if (btnGerar) {
             }
 
         } catch (erro) {
-            console.error("Erro ao gerar receita:", erro);
+            console.error("Erro detalhado ao gerar receita:", erro);
             containerResultado.innerHTML = `
                 <div class="loading-state" style="color: #ff6b4a;">
                     <p>
                         <i class='bx bx-error-circle'></i>
-                        Erro ao gerar a receita. Verifique se a sua API Key é válida.
+                        Erro ao gerar a receita. Verifique se a sua API Key é válida e tem permissões ativas no Google AI Studio.
                     </p>
                 </div>
             `;
@@ -137,7 +136,7 @@ if (btnGerar) {
 }
 
 // ===============================
-// LOCALSTORAGE: ARMAZENAMENTO LOCAL
+// LOCALSTORAGE
 // ===============================
 function salvarReceitaLocal(ingredientesDigitados, conteudoFormatado) {
     const receitasAtuais = JSON.parse(localStorage.getItem("pocketchef_receitas_salvas") || "[]");
@@ -148,7 +147,7 @@ function salvarReceitaLocal(ingredientesDigitados, conteudoFormatado) {
         conteudo: conteudoFormatado
     };
 
-    receitasAtuais.unshift(novaReceita); // Adiciona no início da lista
+    receitasAtuais.unshift(novaReceita);
     localStorage.setItem("pocketchef_receitas_salvas", JSON.stringify(receitasAtuais));
 
     alert("Receita salva com sucesso!");
@@ -163,7 +162,7 @@ function carregarReceitasLocais() {
     if (receitasAtuais.length === 0) {
         listaHistorico.innerHTML = `
             <div class="historico-item vazio">
-                <p>Nenhuma receita salva ainda. Crie sua primeira receita!</p>
+                <p>Nenhuma receita salva ainda.</p>
             </div>
         `;
         if (historicoCount) historicoCount.textContent = "0 salvas";

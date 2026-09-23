@@ -1,17 +1,17 @@
 // ===============================
-// Firebase SDK
+// Firebase SDK (Versão 12.16.0)
 // ===============================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
 
 import {
   getAuth,
   GoogleAuthProvider
-} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
 import {
   getFirestore
-} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
 
 // ===============================
@@ -19,19 +19,12 @@ import {
 // ===============================
 
 const firebaseConfig = {
-
   apiKey: "AIzaSyAO44g0JUMmHskILzwMv4jHtqFvC0UFzlA",
-
   authDomain: "pocket-chef-ai.firebaseapp.com",
-
   projectId: "pocket-chef-ai",
-
   storageBucket: "pocket-chef-ai.firebasestorage.app",
-
   messagingSenderId: "321783406404",
-
   appId: "1:321783406404:web:3f416df20ff436d72f0111"
-
 };
 
 
@@ -47,9 +40,7 @@ const app = initializeApp(firebaseConfig);
 // ===============================
 
 const auth = getAuth(app);
-
 const db = getFirestore(app);
-
 const provider = new GoogleAuthProvider();
 
 
@@ -58,11 +49,7 @@ const provider = new GoogleAuthProvider();
 // ===============================
 
 export {
-
   auth,
-
   db,
-
   provider
-
 };

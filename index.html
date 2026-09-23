@@ -3,21 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PocketChef AI - Dashboard Gastronômico</title>
+  <title>PocketChef AI - Assistente Gastronômico</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-  <link rel="icon" type="image/png" href="Img/favicon.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Splash Screen -->
-  <div id="splash-screen" class="splash-overlay" style="display: none;">
-    <div class="splash-content">
-      <i class='bx bx-restaurant splash-icon'></i>
-      <h1 class="gradient-text">PocketChef</h1>
-      <div class="splash-loader"></div>
-    </div>
-  </div>
 
   <div class="app-layout">
     
@@ -39,19 +29,6 @@
 
     <!-- Conteúdo Principal -->
     <main class="main-content">
-      
-      <!-- User Bar Integrada -->
-      <div class="user-bar">
-        <div class="user-profile">
-          <div class="user-avatar"><i class='bx bx-user'></i></div>
-          <div class="user-details">
-            <h4 id="user-name">Visitante</h4>
-            <p id="user-email">Faça login para sincronizar suas receitas</p>
-          </div>
-        </div>
-        <button id="btn-login" class="btn-login">Entrar</button>
-        <button id="btn-logout" class="btn-logout hidden">Sair</button>
-      </div>
 
       <!-- Input da API Key do Gemini -->
       <div class="chave-segura-container">
@@ -151,24 +128,6 @@
       </footer>
 
     </main>
-  </div>
-
-   <!-- Modal de Login -->
-  <div id="login-modal" class="login-modal hidden">
-    <div class="login-card">
-      <button id="close-modal" class="close-modal">&times;</button>
-      <i class='bx bx-restaurant login-logo'></i>
-      <h2>Acesse sua conta</h2>
-      <p>Sincronize suas receitas salvas em qualquer dispositivo.</p>
-      
-      <input type="email" id="login-email" placeholder="Seu e-mail">
-      <input type="password" id="login-password" placeholder="Sua senha">
-
-      <button id="btn-email-login" class="btn-principal">Entrar</button>
-      <button id="btn-register" class="btn-secundario">Criar Nova Conta</button>
-      <button id="btn-google-login" class="btn-google"><i class='bx bxl-google'></i> Entrar com Google</button>
-      <button id="btn-forgot" class="btn-link">Esqueci minha senha</button>
-    </div>
   </div>
 
   <script type="module" src="app.js"></script>

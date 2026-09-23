@@ -1,25 +1,4 @@
 import { GoogleGenAI } from "https://esm.run/@google/genai";
-import { auth, db, provider } from "./firebase.js";
-
-import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signInWithPopup,
-    signOut,
-    sendPasswordResetEmail,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-
-import {
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    where,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
-
-let usuarioAtual = null;
 
 // ===============================
 // ELEMENTOS DO DOM
@@ -32,170 +11,41 @@ const containerResultado = document.getElementById("resultado-container");
 const inputApiKey = document.getElementById("input-chave-api");
 const listaHistorico = document.getElementById("lista-receitas-salvas");
 const historicoCount = document.getElementById("historico-count");
-
-// Modal & Auth Elements
-const loginModal = document.getElementById("login-modal");
-const btnLogin = document.getElementById("btn-login");
-const btnLogout = document.getElementById("btn-logout");
-const btnClose = document.getElementById("close-modal");
-const btnEntrar = document.getElementById("btn-email-login");
-const btnGoogle = document.getElementById("btn-google-login");
-const btnCriarConta = document.getElementById("btn-register");
-const btnEsqueci = document.getElementById("btn-forgot");
-const emailInput = document.getElementById("login-email");
-const senhaInput = document.getElementById("login-password");
-const nomeUsuario = document.getElementById("user-name");
-const emailUsuario = document.getElementById("user-email");
+const btnLimparHistorico = document.getElementById("btn-limpar-historico");
 
 // ===============================
 // INICIALIZAÇÃO
 // ===============================
 window.addEventListener("DOMContentLoaded", () => {
-    const splash = document.getElementById("splash-screen");
-    if (splash) {
-        splash.classList.add("fade-out");
-        setTimeout(() => splash.style.display = "none", 500);
-    }
-
+    // Restaura chave da API salva no navegador
     const savedKey = localStorage.getItem("pocketchef_gemini_key");
     if (savedKey && inputApiKey) {
         inputApiKey.value = savedKey;
     }
+    
+    // Carrega receitas salvas localmente
+    carregarReceitasLocais();
 });
 
+// Guardar API Key localmente quando o utilizador digitar
 if (inputApiKey) {
     inputApiKey.addEventListener("change", () => {
         localStorage.setItem("pocketchef_gemini_key", inputApiKey.value.trim());
     });
 }
 
-// ===============================
-// CONTROLO DO MODAL
-// ===============================
-if (btnLogin) btnLogin.addEventListener("click", () => loginModal.classList.remove("hidden"));
-if (btnClose) btnClose.addEventListener("click", () => loginModal.classList.add("hidden"));
-window.addEventListener("click", (e) => { 
-    if (e.target === loginModal) loginModal.classList.add("hidden"); 
-});
-
-// ===============================
-// AÇÕES DE AUTENTICAÇÃO DIRECTAS
-// ===============================
-
-// 1. Entrar com E-mail e Senha
-if (btnEntrar) {
-    btnEntrar.addEventListener("click", async () => {
-        const email = emailInput ? emailInput.value.trim() : "";
-        const senha = senhaInput ? senhaInput.value.trim() : "";
-
-        if (!email || !senha) {
-            alert("Por favor, preencha o e-mail e a senha.");
-            return;
-        }
-
-        try {
-            await signInWithEmailAndPassword(auth, email, senha);
-            alert("Login realizado com sucesso!");
-            loginModal.classList.add("hidden");
-        } catch (error) {
-            alert("Erro no login: " + error.message);
-        }
-    });
-}
-
-// 2. Criar Nova Conta
-if (btnCriarConta) {
-    btnCriarConta.addEventListener("click", async () => {
-        const email = emailInput ? emailInput.value.trim() : "";
-        const senha = senhaInput ? senhaInput.value.trim() : "";
-
-        if (!email || !senha) {
-            alert("Por favor, preencha o e-mail e a senha.");
-            return;
-        }
-
-        if (senha.length < 6) {
-            alert("A senha deve ter pelo menos 6 caracteres.");
-            return;
-        }
-
-        try {
-            await createUserWithEmailAndPassword(auth, email, senha);
-            alert("Conta criada com sucesso!");
-            loginModal.classList.add("hidden");
-        } catch (error) {
-            alert("Erro ao criar conta: " + error.message);
-        }
-    });
-}
-
-// 3. Entrar com Google
-if (btnGoogle) {
-    btnGoogle.addEventListener("click", async () => {
-        try {
-            await signInWithPopup(auth, provider);
-            alert("Bem-vindo ao PocketChef!");
-            loginModal.classList.add("hidden");
-        } catch (error) {
-            alert("Erro na autenticação do Google: " + error.message);
-        }
-    });
-}
-
-// 4. Terminar Sessão (Logout)
-if (btnLogout) {
-    btnLogout.addEventListener("click", async () => {
-        try {
-            await signOut(auth);
-            alert("Sessão terminada.");
-        } catch (error) {
-            alert("Erro ao sair: " + error.message);
-        }
-    });
-}
-
-// 5. Recuperar Senha
-if (btnEsqueci) {
-    btnEsqueci.addEventListener("click", async () => {
-        const email = emailInput ? emailInput.value.trim() : "";
-        if (!email) {
-            alert("Digite o seu e-mail no campo antes de clicar em recuperar senha.");
-            return;
-        }
-        try {
-            await sendPasswordResetEmail(auth, email);
-            alert("Enviamos um e-mail de recuperação.");
-        } catch (error) {
-            alert("Erro: " + error.message);
+// Limpar histórico
+if (btnLimparHistorico) {
+    btnLimparHistorico.addEventListener("click", () => {
+        if (confirm("Tem certeza que deseja apagar todas as receitas salvas?")) {
+            localStorage.removeItem("pocketchef_receitas_salvas");
+            carregarReceitasLocais();
         }
     });
 }
 
 // ===============================
-// MONITOR DE ESTADO DO UTILIZADOR
-// ===============================
-onAuthStateChanged(auth, (user) => {
-    usuarioAtual = user;
-    if (user) {
-        if (nomeUsuario) nomeUsuario.textContent = user.displayName || "Chef";
-        if (emailUsuario) emailUsuario.textContent = user.email;
-        if (btnLogin) btnLogin.classList.add("hidden");
-        if (btnLogout) btnLogout.classList.remove("hidden");
-        if (loginModal) loginModal.classList.add("hidden");
-
-        carregarReceitasSalvas(user.uid);
-    } else {
-        if (nomeUsuario) nomeUsuario.textContent = "Visitante";
-        if (emailUsuario) emailUsuario.textContent = "Faça login para sincronizar suas receitas";
-        if (btnLogin) btnLogin.classList.remove("hidden");
-        if (btnLogout) btnLogout.classList.add("hidden");
-
-        renderizarHistoricoVazio();
-    }
-});
-
-// ===============================
-// GERAR RECEITA (GEMINI API)
+// GERAR RECEITA (INTEGRAÇÃO GEMINI)
 // ===============================
 if (btnGerar) {
     btnGerar.addEventListener("click", async () => {
@@ -222,7 +72,10 @@ if (btnGerar) {
         containerResultado.classList.remove("hidden");
         containerResultado.innerHTML = `
             <div class="loading-state">
-                <p><i class='bx bx-loader-alt bx-spin'></i> O PocketChef está a preparar a sua receita...</p>
+                <p>
+                    <i class='bx bx-loader-alt bx-spin'></i>
+                    O PocketChef está a preparar a sua receita...
+                </p>
             </div>
         `;
 
@@ -248,7 +101,7 @@ if (btnGerar) {
                 contents: promptText
             });
 
-            const textoReceita = response.text || "Não foi possível gerar a receita.";
+            const textoReceita = response.text || "Não foi possível estruturar o texto da receita.";
 
             containerResultado.innerHTML = `
                 <div class="recipe-container">
@@ -256,22 +109,16 @@ if (btnGerar) {
                     <div class="recipe-content">
                         ${textoReceita.replace(/\n/g, "<br>")}
                     </div>
-                    ${usuarioAtual ? `
-                        <button id="btn-salvar-receita" class="btn-principal" style="margin-top: 20px;">
-                            <i class='bx bx-bookmark-plus'></i> Salvar no Livro de Receitas
-                        </button>
-                    ` : `
-                        <p style="margin-top: 15px; font-size: 0.85rem; color: var(--color-text-muted);">
-                            <i class='bx bx-info-circle'></i> Faça login para poder guardar esta receita.
-                        </p>
-                    `}
+                    <button id="btn-salvar-receita" class="btn-principal" style="margin-top: 20px;">
+                        <i class='bx bx-bookmark-plus'></i> Salvar no Livro de Receitas
+                    </button>
                 </div>
             `;
 
             const btnSalvar = document.getElementById("btn-salvar-receita");
             if (btnSalvar) {
                 btnSalvar.addEventListener("click", () => {
-                    salvarReceitaNoFirestore(ingredientes, textoReceita);
+                    salvarReceitaLocal(ingredientes, textoReceita);
                 });
             }
 
@@ -279,7 +126,10 @@ if (btnGerar) {
             console.error("Erro ao gerar receita:", erro);
             containerResultado.innerHTML = `
                 <div class="loading-state" style="color: #ff6b4a;">
-                    <p><i class='bx bx-error-circle'></i> Erro ao gerar a receita. Verifique se a sua API Key é válida.</p>
+                    <p>
+                        <i class='bx bx-error-circle'></i>
+                        Erro ao gerar a receita. Verifique se a sua API Key é válida.
+                    </p>
                 </div>
             `;
         }
@@ -287,93 +137,66 @@ if (btnGerar) {
 }
 
 // ===============================
-// FIRESTORE: SALVAR E CARREGAR
+// LOCALSTORAGE: ARMAZENAMENTO LOCAL
 // ===============================
-async function salvarReceitaNoFirestore(ingredientesDigitados, conteudoFormatado) {
-    if (!usuarioAtual) {
-        alert("Você precisa estar logado para salvar receitas.");
+function salvarReceitaLocal(ingredientesDigitados, conteudoFormatado) {
+    const receitasAtuais = JSON.parse(localStorage.getItem("pocketchef_receitas_salvas") || "[]");
+    
+    const novaReceita = {
+        id: Date.now(),
+        titulo: `Receita com ${ingredientesDigitados}`,
+        conteudo: conteudoFormatado
+    };
+
+    receitasAtuais.unshift(novaReceita); // Adiciona no início da lista
+    localStorage.setItem("pocketchef_receitas_salvas", JSON.stringify(receitasAtuais));
+
+    alert("Receita salva com sucesso!");
+    carregarReceitasLocais();
+}
+
+function carregarReceitasLocais() {
+    if (!listaHistorico) return;
+
+    const receitasAtuais = JSON.parse(localStorage.getItem("pocketchef_receitas_salvas") || "[]");
+
+    if (receitasAtuais.length === 0) {
+        listaHistorico.innerHTML = `
+            <div class="historico-item vazio">
+                <p>Nenhuma receita salva ainda. Crie sua primeira receita!</p>
+            </div>
+        `;
+        if (historicoCount) historicoCount.textContent = "0 salvas";
         return;
     }
 
-    try {
-        await addDoc(collection(db, "receitas"), {
-            userId: usuarioAtual.uid,
-            titulo: `Receita com ${ingredientesDigitados}`,
-            conteudo: conteudoFormatado,
-            criadoEm: serverTimestamp()
-        });
-
-        alert("Receita salva com sucesso!");
-        carregarReceitasSalvas(usuarioAtual.uid);
-
-    } catch (e) {
-        console.error("Erro ao salvar no Firestore:", e);
-        alert("Não foi possível salvar a receita.");
-    }
-}
-
-async function carregarReceitasSalvas(userId) {
-    if (!listaHistorico) return;
-
-    try {
-        const q = query(
-            collection(db, "receitas"),
-            where("userId", "==", userId)
-        );
-
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            renderizarHistoricoVazio();
-            return;
-        }
-
-        listaHistorico.innerHTML = "";
-        let quantidade = 0;
-
-        querySnapshot.forEach((docSnap) => {
-            quantidade++;
-            const data = docSnap.data();
-
-            const card = document.createElement("div");
-            card.className = "historico-item";
-            card.style.cssText = "padding: 12px; background: var(--surface-input); border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer; margin-bottom: 8px;";
-            card.innerHTML = `
-                <h4 style="font-size: 0.85rem; color: var(--brand-yellow); margin-bottom: 4px;">${data.titulo}</h4>
-                <p style="font-size: 0.75rem; color: var(--color-text-secondary);"><i class='bx bx-book-open'></i> Clique para visualizar</p>
-            `;
-
-            card.addEventListener("click", () => {
-                containerResultado.classList.remove("hidden");
-                containerResultado.innerHTML = `
-                    <div class="recipe-container">
-                        <h2 class="recipe-title"><i class='bx bx-book-bookmark'></i> ${data.titulo}</h2>
-                        <div class="recipe-content">
-                            ${data.conteudo.replace(/\n/g, "<br>")}
-                        </div>
-                    </div>
-                `;
-            });
-
-            listaHistorico.appendChild(card);
-        });
-
-        if (historicoCount) {
-            historicoCount.textContent = `${quantidade} salva${quantidade > 1 ? 's' : ''}`;
-        }
-
-    } catch (e) {
-        console.error("Erro ao buscar histórico:", e);
-    }
-}
-
-function renderizarHistoricoVazio() {
-    if (listaHistorico) {
-        listaHistorico.innerHTML = `
-            <div class="historico-item vazio">
-                <p>Nenhuma receita salva ainda.</p>
-            </div>
+    listaHistorico.innerHTML = "";
+    
+    receitasAtuais.forEach((receita) => {
+        const card = document.createElement("div");
+        card.className = "historico-item";
+        card.style.cssText = "padding: 12px; background: var(--surface-input); border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer; margin-bottom: 8px;";
+        card.innerHTML = `
+            <h4 style="font-size: 0.85rem; color: var(--brand-yellow); margin-bottom: 4px;">${receita.titulo}</h4>
+            <p style="font-size: 0.75rem; color: var(--color-text-secondary);"><i class='bx bx-book-open'></i> Clique para visualizar</p>
         `;
+
+        card.addEventListener("click", () => {
+            containerResultado.classList.remove("hidden");
+            containerResultado.innerHTML = `
+                <div class="recipe-container">
+                    <h2 class="recipe-title"><i class='bx bx-book-bookmark'></i> ${receita.titulo}</h2>
+                    <div class="recipe-content">
+                        ${receita.conteudo.replace(/\n/g, "<br>")}
+                    </div>
+                </div>
+            `;
+        });
+
+        listaHistorico.appendChild(card);
+    });
+
+    if (historicoCount) {
+        historicoCount.textContent = `${receitasAtuais.length} salva${receitasAtuais.length > 1 ? 's' : ''}`;
     }
-    if (historicoCount) historicoCount.textContent = "0 salvas";
 }

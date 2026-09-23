@@ -50,25 +50,23 @@ const emailUsuario = document.getElementById("user-email");
 // INICIALIZAÇÃO
 // ===============================
 window.addEventListener("DOMContentLoaded", () => {
-    // Esconde a Splash Screen
+    // Força a remoção da Splash Screen
     const splash = document.getElementById("splash-screen");
     if (splash) {
-        setTimeout(() => splash.classList.add("fade-out"), 500);
+        setTimeout(() => {
+            splash.classList.add("fade-out");
+            // Remove do DOM após a animação de transparência
+            setTimeout(() => { splash.style.display = "none"; }, 500);
+        }, 600);
     }
 
-    // Restaura chave da API salva anteriormente no navegador
+    // Restaura chave da API salva
     const savedKey = localStorage.getItem("pocketchef_gemini_key");
     if (savedKey && inputApiKey) {
         inputApiKey.value = savedKey;
     }
 });
 
-// Guardar API Key localmente quando o usuário digitar
-if (inputApiKey) {
-    inputApiKey.addEventListener("change", () => {
-        localStorage.setItem("pocketchef_gemini_key", inputApiKey.value.trim());
-    });
-}
 
 // ===============================
 // EVENTOS DE LOGIN / MODAL

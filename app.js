@@ -1,5 +1,15 @@
 import { GoogleGenAI } from "https://esm.run/@google/genai";
-import { auth, db } from "./firebase.js";
+import { auth, db, provider } from "./firebase.js";
+
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    signOut,
+    sendPasswordResetEmail,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
 import {
     collection,
     addDoc,
@@ -8,15 +18,6 @@ import {
     where,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
-
-import {
-    cadastrar,
-    login,
-    loginGoogle,
-    recuperarSenha,
-    sair,
-    verificarLogin
-} from "./auth.js";
 
 let usuarioAtual = null;
 
@@ -50,35 +51,38 @@ const emailUsuario = document.getElementById("user-email");
 // INICIALIZAÇÃO
 // ===============================
 window.addEventListener("DOMContentLoaded", () => {
-    // Força a remoção da Splash Screen
     const splash = document.getElementById("splash-screen");
     if (splash) {
-        setTimeout(() => {
-            splash.classList.add("fade-out");
-            // Remove do DOM após a animação de transparência
-            setTimeout(() => { splash.style.display = "none"; }, 500);
-        }, 600);
+        splash.classList.add("fade-out");
+        setTimeout(() => splash.style.display = "none", 500);
     }
 
-    // Restaura chave da API salva
     const savedKey = localStorage.getItem("pocketchef_gemini_key");
     if (savedKey && inputApiKey) {
         inputApiKey.value = savedKey;
     }
 });
 
+if (inputApiKey) {
+    inputApiKey.addEventListener("change", () => {
+        localStorage.setItem("pocketchef_gemini_key", inputApiKey.value.trim());
+    });
+}
 
 // ===============================
-// EVENTOS DE LOGIN / MODAL
+// CONTROLO DO MODAL
 // ===============================
 if (btnLogin) btnLogin.addEventListener("click", () => loginModal.classList.remove("hidden"));
 if (btnClose) btnClose.addEventListener("click", () => loginModal.classList.add("hidden"));
-
 window.addEventListener("click", (e) => { 
     if (e.target === loginModal) loginModal.classList.add("hidden"); 
 });
 
-// LOGIN COM E-MAIL E SENHA
+// ===============================
+// AÇÕES DE AUTENTICAÇÃO DIRECTAS
+// ===============================
+
+// 1. Entrar com E-mail e Senha
 if (btnEntrar) {
     btnEntrar.addEventListener("click", async () => {
         const email = emailInput ? emailInput.value.trim() : "";
@@ -89,18 +93,24 @@ if (btnEntrar) {
             return;
         }
 
-        await login(email, senha);
+        try {
+            await signInWithEmailAndPassword(auth, email, senha);
+            alert("Login realizado com sucesso!");
+            loginModal.classList.add("hidden");
+        } catch (error) {
+            alert("Erro no login: " + error.message);
+        }
     });
 }
 
-// CADASTRAR NOVO USUÁRIO
+// 2. Criar Nova Conta
 if (btnCriarConta) {
     btnCriarConta.addEventListener("click", async () => {
         const email = emailInput ? emailInput.value.trim() : "";
         const senha = senhaInput ? senhaInput.value.trim() : "";
 
         if (!email || !senha) {
-            alert("Por favor, preencha o e-mail e a senha para criar a conta.");
+            alert("Por favor, preencha o e-mail e a senha.");
             return;
         }
 
@@ -109,32 +119,62 @@ if (btnCriarConta) {
             return;
         }
 
-        await cadastrar(email, senha);
+        try {
+            await createUserWithEmailAndPassword(auth, email, senha);
+            alert("Conta criada com sucesso!");
+            loginModal.classList.add("hidden");
+        } catch (error) {
+            alert("Erro ao criar conta: " + error.message);
+        }
     });
 }
 
-// LOGIN COM GOOGLE
+// 3. Entrar com Google
 if (btnGoogle) {
     btnGoogle.addEventListener("click", async () => {
-        await loginGoogle();
+        try {
+            await signInWithPopup(auth, provider);
+            alert("Bem-vindo ao PocketChef!");
+            loginModal.classList.add("hidden");
+        } catch (error) {
+            alert("Erro na autenticação do Google: " + error.message);
+        }
     });
 }
 
-// LOGOUT E RECUPERAR SENHA
-if (btnLogout) btnLogout.addEventListener("click", () => sair());
+// 4. Terminar Sessão (Logout)
+if (btnLogout) {
+    btnLogout.addEventListener("click", async () => {
+        try {
+            await signOut(auth);
+            alert("Sessão terminada.");
+        } catch (error) {
+            alert("Erro ao sair: " + error.message);
+        }
+    });
+}
 
+// 5. Recuperar Senha
 if (btnEsqueci) {
-    btnEsqueci.addEventListener("click", () => {
+    btnEsqueci.addEventListener("click", async () => {
         const email = emailInput ? emailInput.value.trim() : "";
-        recuperarSenha(email);
+        if (!email) {
+            alert("Digite o seu e-mail no campo antes de clicar em recuperar senha.");
+            return;
+        }
+        try {
+            await sendPasswordResetEmail(auth, email);
+            alert("Enviamos um e-mail de recuperação.");
+        } catch (error) {
+            alert("Erro: " + error.message);
+        }
     });
 }
 
-
 // ===============================
-// MONITOR DA AUTENTICAÇÃO
+// MONITOR DE ESTADO DO UTILIZADOR
 // ===============================
-verificarLogin((user) => {
+onAuthStateChanged(auth, (user) => {
     usuarioAtual = user;
     if (user) {
         if (nomeUsuario) nomeUsuario.textContent = user.displayName || "Chef";
@@ -155,7 +195,7 @@ verificarLogin((user) => {
 });
 
 // ===============================
-// GERAR RECEITA (INTEGRAÇÃO GEMINI)
+// GERAR RECEITA (GEMINI API)
 // ===============================
 if (btnGerar) {
     btnGerar.addEventListener("click", async () => {
@@ -167,7 +207,6 @@ if (btnGerar) {
         const radioMarcado = document.querySelector('input[name="restricao"]:checked');
         const restricao = radioMarcado ? radioMarcado.value : "Nenhuma";
 
-        // Validações
         if (!chaveUsuario) {
             alert("Cole sua Gemini API Key no campo indicado no topo.");
             return;
@@ -178,22 +217,16 @@ if (btnGerar) {
             return;
         }
 
-        // Armazena a chave para evitar redigitar
         localStorage.setItem("pocketchef_gemini_key", chaveUsuario);
 
-        // Feedback de carregamento
         containerResultado.classList.remove("hidden");
         containerResultado.innerHTML = `
             <div class="loading-state">
-                <p>
-                    <i class='bx bx-loader-alt bx-spin'></i>
-                    O PocketChef está preparando sua receita mágica...
-                </p>
+                <p><i class='bx bx-loader-alt bx-spin'></i> O PocketChef está a preparar a sua receita...</p>
             </div>
         `;
 
         try {
-            // Inicializa a instância do SDK do Gemini
             const ai = new GoogleGenAI({ apiKey: chaveUsuario });
 
             const promptText = `
@@ -210,16 +243,13 @@ if (btnGerar) {
                 3. Modo de Preparo Passo a Passo
             `;
 
-            // Chamada à API
             const response = await ai.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: promptText
             });
 
-            // Extração do texto retornado pela API
-            const textoReceita = response.text || "Não foi possível estruturar o texto da receita.";
+            const textoReceita = response.text || "Não foi possível gerar a receita.";
 
-            // Exibe o resultado formatado
             containerResultado.innerHTML = `
                 <div class="recipe-container">
                     <h2 class="recipe-title"><i class='bx bx-dish'></i> Sua Receita PocketChef</h2>
@@ -232,13 +262,12 @@ if (btnGerar) {
                         </button>
                     ` : `
                         <p style="margin-top: 15px; font-size: 0.85rem; color: var(--color-text-muted);">
-                            <i class='bx bx-info-circle'></i> Faça login para poder salvar esta receita na sua conta.
+                            <i class='bx bx-info-circle'></i> Faça login para poder guardar esta receita.
                         </p>
                     `}
                 </div>
             `;
 
-            // Atribui ação ao botão de salvar receita (caso o usuário esteja logado)
             const btnSalvar = document.getElementById("btn-salvar-receita");
             if (btnSalvar) {
                 btnSalvar.addEventListener("click", () => {
@@ -250,10 +279,7 @@ if (btnGerar) {
             console.error("Erro ao gerar receita:", erro);
             containerResultado.innerHTML = `
                 <div class="loading-state" style="color: #ff6b4a;">
-                    <p>
-                        <i class='bx bx-error-circle'></i>
-                        Erro ao gerar a receita. Verifique se a sua API Key é válida e tem permissões ativas.
-                    </p>
+                    <p><i class='bx bx-error-circle'></i> Erro ao gerar a receita. Verifique se a sua API Key é válida.</p>
                 </div>
             `;
         }
@@ -277,12 +303,12 @@ async function salvarReceitaNoFirestore(ingredientesDigitados, conteudoFormatado
             criadoEm: serverTimestamp()
         });
 
-        alert("Receita salva com sucesso no seu Livro!");
+        alert("Receita salva com sucesso!");
         carregarReceitasSalvas(usuarioAtual.uid);
 
     } catch (e) {
         console.error("Erro ao salvar no Firestore:", e);
-        alert("Não foi possível salvar a receita. Tente novamente.");
+        alert("Não foi possível salvar a receita.");
     }
 }
 
@@ -311,7 +337,7 @@ async function carregarReceitasSalvas(userId) {
 
             const card = document.createElement("div");
             card.className = "historico-item";
-            card.style.cssText = "padding: 12px; background: var(--surface-input); border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer; transition: 0.2s;";
+            card.style.cssText = "padding: 12px; background: var(--surface-input); border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer; margin-bottom: 8px;";
             card.innerHTML = `
                 <h4 style="font-size: 0.85rem; color: var(--brand-yellow); margin-bottom: 4px;">${data.titulo}</h4>
                 <p style="font-size: 0.75rem; color: var(--color-text-secondary);"><i class='bx bx-book-open'></i> Clique para visualizar</p>
@@ -345,7 +371,7 @@ function renderizarHistoricoVazio() {
     if (listaHistorico) {
         listaHistorico.innerHTML = `
             <div class="historico-item vazio">
-                <p>Nenhuma receita salva ainda. Crie sua primeira receita mágica!</p>
+                <p>Nenhuma receita salva ainda.</p>
             </div>
         `;
     }
